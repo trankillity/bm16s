@@ -1,0 +1,39 @@
+name: Build QMK firmware
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: qmkfm/qmk_cli
+    strategy:
+      fail-fast: false
+
+    steps:
+    - name: Checkout QMK
+      uses: actions/checkout@v3
+      with:
+        repository: qmk/qmk_firmware
+        ref: master
+        submodules: true
+    
+    # - name: Checkout keymap
+    #   uses: actions/checkout@v3
+    #   with:
+    #     path: keyboards/kprepublic/bm16s/keymaps/${{ github.actor }}
+
+    # - name: Build firmware
+    #   run: make kprepublic/bm16s:${{ github.actor }} FP_TRACKBALL_ENABLE=yes CONVERT_TO=stemcell
+
+    - name: Build firmware
+      run: make kprepublic/bm16s:via
+
+    - name: Archive firmware
+      uses: actions/upload-artifact@v3
+      with:
+        name: bm16s_${{ github.actor }}
+        retention-days: 2
+        path: |
+          *.hex
+          *.bin
+          *.uf2
+      continue-on-error: true
